@@ -1,11 +1,38 @@
 import subprocess
 import os, sys
 
-from utils import read_file, extract_first_code
+from utils import query_server, read_file, extract_first_code
 '''
 Construct Prompts
 As basic as we can be, not to steer the LLM too much
 '''
+
+SERVER_TYPE = "deepseek"
+
+server_args = {
+    "deepseek": {
+        "temperature": 1.6,
+        "max_tokens": 4096
+    },
+    "gemini": {}, # need to experiment with temperature,
+    "together": { # this is Llama 3.1
+        "model_name": "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+        "temperature": 0.7,
+        "max_tokens": 4096
+    },
+    "sglang": { # this is Llama 3
+        "temperature": 0.7,
+    }
+}
+#from sys import path
+# path.append('/matx/u/aco/cuda_monkeys/CUDABench/')
+
+def run_llm(prompt):
+    '''
+    Call use common API query function with monkeys
+    '''
+    return query_server(prompt, server_type=SERVER_TYPE
+                        , **server_args[SERVER_TYPE])
 
 REPO_TOP_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',))
 KERNEL_BENCH_PATH = os.path.join(REPO_TOP_PATH, "KernelBench")
@@ -31,7 +58,7 @@ def prompt_generate_custom_cuda(arc_src: str,
     prompt = f"""
     You write custom CUDA kernels to replace the pytorch operators in the given architecture to get speedups. \n
     You have complete freedom to choose the set of operators you want to replace. You may replace multiple operators with custom implementations, consider operator fusion opportunities (combining multiple operators into a single kernel, for example, combining matmul+relu), or algorithmic changes (such as online softmax). You are only limited by your imagination.\n
-    Here's an pseudocode example to show you the syntax of inline embedding custom CUDA operators in torch: The example given architecture is: \n
+    Here's an example to show you the syntax of inline embedding custom CUDA operators in torch: The example given architecture is: \n
     ```
     {example_arch_src}
     ``` \n
@@ -48,12 +75,12 @@ def prompt_generate_custom_cuda(arc_src: str,
     """
     return prompt
 
-def prompt_generate_custom_cuda_from_file(arch_path):
+def prompt_generate_custom_cuda_from_file(arch_path, example_ind=0):
     arch = get_arch_definition_from_file(arch_path)
     # These are strictly defined for now
     
-    example_arch_path = os.path.join(REPO_TOP_PATH, "src/prompts/model_ex.py")
-    example_new_arch_path = os.path.join(REPO_TOP_PATH, "src/prompts/model_new_ex.py")
+    example_arch_path = os.path.join(REPO_TOP_PATH, f"src/prompts/model_ex_{example_ind}.py")
+    example_new_arch_path = os.path.join(REPO_TOP_PATH, f"src/prompts/model_new_ex_{example_ind}.py")
     
     if not os.path.exists(example_arch_path):
         raise FileNotFoundError(f"Example architecture file not found: {example_arch_path}")
@@ -66,8 +93,8 @@ def prompt_generate_custom_cuda_from_file(arch_path):
     return prompt_generate_custom_cuda(arch, example_arch, example_new_arch)
     
 
-def check_prompt_generate_custom_cuda(arch_path):
-    generated_prompt = prompt_generate_custom_cuda_from_file(arch_path)
+def check_prompt_generate_custom_cuda(arch_path, example_ind=0):
+    generated_prompt = prompt_generate_custom_cuda_from_file(arch_path, example_ind)
 
     os.makedirs(os.path.join(REPO_TOP_PATH, "src/scratch"), exist_ok=True)
     with open(os.path.join(REPO_TOP_PATH, "src/scratch/prompt.txt"), "w") as f:
@@ -86,7 +113,8 @@ def run(arch_path):
         f.write(arch)
 
     # generate custom CUDA, save in scratch/model_new.py
-    custom_cuda_prompt = prompt_generate_custom_cuda_from_file(arch_path)
+    example_ind = 0
+    custom_cuda_prompt = prompt_generate_custom_cuda_from_file(arch_path, example_ind)
     custom_cuda = run_llm(custom_cuda_prompt)
 
     # import pdb; pdb.set_trace()
@@ -95,15 +123,15 @@ def run(arch_path):
     assert custom_cuda is not None, "Custom CUDA code generation failed"
     print("[Verification] Torch moduel with Custom CUDA code **GENERATED** successfully")
 
+    with open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "w") as f:
+        f.write(custom_cuda)
+
     # check if the generated code compiles
     try:
         exec(custom_cuda)
         print("[Verification] Custom CUDA code **COMPILES** successfully")
     except Exception as e:
         raise RuntimeError(f"Error compiling generated custom cuda code: {e}")
-
-    with open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "w") as f:
-        f.write(custom_cuda)
 
     # check generated code is correct / functionally equivalent.
     # run test harness, save output in log.txt
@@ -120,5 +148,6 @@ def run(arch_path):
             print("[Verification] Custom CUDA kernel **FAIL** to match reference in terms of correctness")
             return "FAIL"
 
-# if __name__ == "__main__":
-#     check_prompt_generate_custom_cuda(os.path.join(REPO_TOP_PATH, "src/prompts/model_ex.py"))
+if __name__ == "__main__":
+    # check_prompt_generate_custom_cuda(os.path.join(REPO_TOP_PATH, "src/prompts/model_ex.py"))
+    run(os.path.join(KERNEL_BENCH_PATH, "level1/17_Matmul_with_transposed_B.py"))

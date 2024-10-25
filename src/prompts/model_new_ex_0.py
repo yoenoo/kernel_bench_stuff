@@ -36,7 +36,9 @@ custom_kernel_name_1 = load_inline(
     cpp_sources='<custom_kernel_name_1>_cpp_source',
     cuda_sources='<custom_kernel_name_1>_source',
     functions=['<custom_kernel_name_1>_cuda'],
-    verbose=True
+    verbose=True,
+    extra_cflags=[''],
+    extra_ldflags=['']
 )
 
 # ... It is possible to have multiple custom kernels
@@ -51,7 +53,9 @@ custom_kernel_name_2 = load_inline(
     cpp_sources='<custom_kernel_name_2>_cpp_source',
     cuda_sources='<custom_kernel_name_2>_source',
     functions=['<custom_kernel_name_2>_cuda'],
-    verbose=True
+    verbose=True,
+    extra_cflags=[''],
+    extra_ldflags=['']
 )
 
 # Inline CUDA code for custom_kernel_name_3
@@ -64,7 +68,9 @@ custom_kernel_name_3 = load_inline(
     cpp_sources='<custom_kernel_name_2>_cpp_source',
     cuda_sources='<custom_kernel_name_2>_source',
     functions=['<custom_kernel_name_2>_cuda'],
-    verbose=True
+    verbose=True,
+    extra_cflags=[''],
+    extra_ldflags=['']
 )
 
 class ModelNew(nn.Module):
