@@ -22,14 +22,14 @@ __global__ void matmul_kernel(const float* A, const float* B, float* C, int M, i
 
 torch::Tensor matmul_cuda(torch::Tensor A, torch::Tensor B) {
     auto M = A.size(0);
-    auto K = A.size(1);
     auto N = B.size(0);
+    auto K = A.size(1);
 
     auto C = torch::zeros({M, N}, A.options());
 
     const int BLOCK_SIZE = 16;
     dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 dimGrid((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
+    dim3 dimGrid((N + dimBlock.x - 1) / dimBlock.x, (M + dimBlock.y - 1) / dimBlock.y);
 
     matmul_kernel<<<dimGrid, dimBlock>>>(A.data_ptr<float>(), B.data_ptr<float>(), C.data_ptr<float>(), M, N, K);
 
@@ -61,14 +61,12 @@ class ModelNew(nn.Module):
 
         Args:
             A: Input tensor of shape (M, K).
-            B: Input tensor of shape (K, N).
+            B: Input tensor of shape (N, K).
 
         Returns:
             Output tensor of shape (M, N).
         """
-        # Transpose B to match the kernel's expected input shape
-        B_T = B.T
-        return self.matmul.matmul_cuda(A, B_T)
+        return self.matmul.matmul_cuda(A, B.T)
 
 M = 1024
 K = 4096

@@ -23,8 +23,6 @@ server_args = {
         "temperature": 0.7,
     }
 }
-#from sys import path
-# path.append('/matx/u/aco/cuda_monkeys/CUDABench/')
 
 def run_llm(prompt):
     '''
@@ -110,39 +108,23 @@ def run(arch_path):
     with open(os.path.join(REPO_TOP_PATH, "src/scratch/model.py"), "w") as f:
         f.write(arch)
 
-    # # generate custom CUDA, save in scratch/model_new.py
-    # example_ind = 1
-    # custom_cuda_prompt = prompt_generate_custom_cuda_from_file(arch_path, example_ind)
-    # custom_cuda = run_llm(custom_cuda_prompt)
-    # # import pdb; pdb.set_trace()
-    # custom_cuda = extract_first_code(custom_cuda, "python")
-
-    custom_cuda = open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "r").read()
+    # generate custom CUDA, save in scratch/model_new.py
+    example_ind = 1
+    custom_cuda_prompt = prompt_generate_custom_cuda_from_file(arch_path, example_ind)
+    custom_cuda = run_llm(custom_cuda_prompt)
+    # import pdb; pdb.set_trace()
+    custom_cuda = extract_first_code(custom_cuda, "python")
 
     # check LLM is able to generate custom CUDA code
     assert custom_cuda is not None, "Custom CUDA code generation failed"
     print("[Verification] Torch moduel with Custom CUDA code **GENERATED** successfully")
 
-    # with open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "w") as f:
-    #     f.write(custom_cuda)
+    with open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "w") as f:
+        f.write(custom_cuda)
 
     # check if the generated code compiles
     try:
-        code = """
-import torch
-import torch.nn as nn
-from torch.utils.cpp_extension import load_inline
-
-class ModelNew(nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
-
-    def forward(self, A: torch.Tensor, B: torch.Tensor) -> torch.Tensor:
-        return A + B
-"""
-        exec(code)
-        print("CODE OK")
-        # exec(custom_cuda)
+        exec(custom_cuda, globals())
         print("[Verification] Custom CUDA code **COMPILES** successfully")
     except Exception as e:
         raise RuntimeError(f"Error compiling generated custom cuda code: {e}")
