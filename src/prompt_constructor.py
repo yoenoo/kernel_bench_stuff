@@ -112,7 +112,7 @@ def run(arch_path):
         f.write(arch)
 
     # generate custom CUDA, save in scratch/model_new.py
-    example_ind = 0
+    example_ind = 1
     custom_cuda_prompt = prompt_generate_custom_cuda_from_file(arch_path, example_ind)
     custom_cuda = run_llm(custom_cuda_prompt)
 
@@ -148,5 +148,6 @@ def run(arch_path):
             return "FAIL"
 
 if __name__ == "__main__":
-    # check_prompt_generate_custom_cuda(os.path.join(REPO_TOP_PATH, "src/prompts/model_ex.py"))
+    # check_prompt_generate_custom_cuda(os.path.join(REPO_TOP_PATH, "src/prompts/model_ex_1.py"))
+    # run(os.path.join(REPO_TOP_PATH, "src/prompts/model_ex_1.py"))
     run(os.path.join(KERNEL_BENCH_PATH, "level1/17_Matmul_with_transposed_B.py"))
