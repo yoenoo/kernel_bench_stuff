@@ -1,0 +1,14 @@
+anthropic
+modal
+numpy
+openai
+packaging
+#pydra_config
+#python-fasthtml
+torch
+tqdm
+datasets
+transformers
+google-generativeai
+together
+ninja
