@@ -8,91 +8,78 @@ import os
 # cuda_include_dir = os.environ.get('CUDA_HOME', '/usr/local/cuda') + '/include'
 # cuda_lib_dir = os.environ.get('CUDA_HOME', '/usr/local/cuda') + '/lib64'
 
-# Inline CUDA code for custom max_pool2d kernel
-source = """
+<custom_kernel_name_1>_source = """
 #include <torch/extension.h>
 #include <cuda_runtime.h>
 #include <float.h>
 
-__global__ void max_pool2d_kernel(float* input, float* output, int channels, int input_height, int input_width, int pool_height, int pool_width, int stride, int output_height, int output_width) {
-    int w_out = blockIdx.x * blockDim.x + threadIdx.x;
-    int h_out = blockIdx.y * blockDim.y + threadIdx.y;
-    int c = blockIdx.z;
-
-    if (w_out < output_width && h_out < output_height) {
-        float max_val = -FLT_MAX;
-        int start_h = h_out * stride;
-        int start_w = w_out * stride;
-
-        for (int h = 0; h < pool_height; ++h) {
-            for (int w = 0; w < pool_width; ++w) {
-                int h_in = start_h + h;
-                int w_in = start_w + w;
-                if (h_in < input_height && w_in < input_width) {
-                    max_val = fmaxf(max_val, input[c * input_height * input_width + h_in * input_width + w_in]);
-                }
-            }
-        }
-        output[c * output_height * output_width + h_out * output_width + w_out] = max_val;
-    }
+__global__ void <custom_kernel_name_1>(<...kernel params...>) {
+    // custom kernel implementation
 }
 
-torch::Tensor max_pool2d_cuda(torch::Tensor input, int kernel_size, int stride) {
-    const int channels = input.size(1);
-    const int input_height = input.size(2);
-    const int input_width = input.size(3);
+torch::Tensor <custom_kernel_name_1>_cuda(torch::Tensor input) {
+    // set <...kernel params...>
 
-    const int output_height = (input_height - kernel_size) / stride + 1;
-    const int output_width = (input_width - kernel_size) / stride + 1;
+    // get <...kernel launch params...>
 
-    auto output = torch::empty({input.size(0), channels, output_height, output_width}, input.options());
+    <custom_kernel_name><<<...kernel launch params...>>>(<...kernel params...>);
 
-    dim3 block_size(16, 16);
-    dim3 num_blocks((output_width + block_size.x - 1) / block_size.x, (output_height + block_size.y - 1) / block_size.y, channels);
-
-    max_pool2d_kernel<<<num_blocks, block_size>>>(
-        input.data_ptr<float>(), 
-        output.data_ptr<float>(), 
-        channels, 
-        input_height, 
-        input_width, 
-        kernel_size, 
-        kernel_size, 
-        stride, 
-        output_height, 
-        output_width
-    );
+    // output passed in by reference to <custom_kernel_name>
 
     return output;
 }
 """
-cpp_source = "torch::Tensor max_pool2d_cuda(torch::Tensor input, int kernel_size, int stride);"
-
+<custom_kernel_name_1>_cpp_source = "torch::Tensor <custom_kernel_name_1>_cuda(torch::Tensor input);"
 # Compile the inline CUDA code
-custom_max_pool = load_inline(
-    name='custom_max_pool',
-    cpp_sources=cpp_source,
-    cuda_sources=source,
-    functions=['max_pool2d_cuda'],
-    # extra_include_paths=[cuda_include_dir],
-    # extra_ldflags=[f'-L{cuda_lib_dir}', '-lcudart'],
+custom_kernel_name_1 = load_inline(
+    name='<custom_kernel_name_1>',
+    cpp_sources='<custom_kernel_name_1>_cpp_source',
+    cuda_sources='<custom_kernel_name_1>_source',
+    functions=['<custom_kernel_name_1>_cuda'],
     verbose=True
 )
 
-# Custom MNIST model using inlined max_pool2d_cuda
+# ... It is possible to have multiple custom kernels
+
+# Inline CUDA code for custom_kernel_name_2
+<custom_kernel_name_2>_source = ...
+<custom_kernel_name_2>_cpp_source = "torch::Tensor <custom_kernel_name_2>_cuda(torch::Tensor input);"
+
+# Compile the inline CUDA code for custom_kernel_name_2
+custom_kernel_name_2 = load_inline(
+    name='<custom_kernel_name_2>',
+    cpp_sources='<custom_kernel_name_2>_cpp_source',
+    cuda_sources='<custom_kernel_name_2>_source',
+    functions=['<custom_kernel_name_2>_cuda'],
+    verbose=True
+)
+
+# Inline CUDA code for custom_kernel_name_3
+<custom_kernel_name_3>_source = ...
+<custom_kernel_name_3>_cpp_source = "torch::Tensor <custom_kernel_name_3>_cuda(torch::Tensor input);"
+
+# Compile the inline CUDA code for custom_kernel_name_2
+custom_kernel_name_3 = load_inline(
+    name='<custom_kernel_name_2>',
+    cpp_sources='<custom_kernel_name_2>_cpp_source',
+    cuda_sources='<custom_kernel_name_2>_source',
+    functions=['<custom_kernel_name_2>_cuda'],
+    verbose=True
+)
+
 class ModelNew(nn.Module):
     def __init__(self) -> None:
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 10, kernel_size=5)
-        self.conv2 = nn.Conv2d(10, 20, kernel_size=5)
-        self.fc1 = nn.Linear(320, 50)
-        self.fc2 = nn.Linear(50, 10)
+        self.op1 = custom_kernel_name_3
+        self.op2 = ...<some torch operator 2>...
+        self.op34 = custom_kernel_name_1
+        self.op56 = custom_kernel_name_2
+
 
     def forward(self, x):
         # Use the custom max_pool2d operator
-        x = custom_max_pool.max_pool2d_cuda(F.relu(self.conv1(x)), 2, 2)
-        x = custom_max_pool.max_pool2d_cuda(F.relu(self.conv2(x)), 2, 2)
-        x = x.view(-1, 320)
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)
-        return F.log_softmax(x, dim=1)
+        x = self.op1(x, ...<some operator params>...)
+        x = self.op2(x, ...<some operator params>...)
+        x = self.op34(x, ...<some operator params>...)
+        x = self.op56(x, ...<some operator params>...)
+        return x
