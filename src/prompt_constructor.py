@@ -57,7 +57,7 @@ def prompt_generate_custom_cuda(arc_src: str,
                                  example_new_arch_src: str) -> str:
     prompt = f"""
     You write custom CUDA kernels to replace the pytorch operators in the given architecture to get speedups. \n
-    You have complete freedom to choose the set of operators you want to replace. You may replace multiple operators with custom implementations, consider operator fusion opportunities (combining multiple operators into a single kernel, for example, combining matmul+relu), or algorithmic changes (such as online softmax). You are only limited by your imagination.\n
+    You have complete freedom to choose the set of operators you want to replace. You may make the decision to replace some operators with custom CUDA kernels and leave others unchanged. You may replace multiple operators with custom implementations, consider operator fusion opportunities (combining multiple operators into a single kernel, for example, combining matmul+relu), or algorithmic changes (such as online softmax). You are only limited by your imagination.\n
     Here's an example to show you the syntax of inline embedding custom CUDA operators in torch: The example given architecture is: \n
     ```
     {example_arch_src}
@@ -66,12 +66,11 @@ def prompt_generate_custom_cuda(arc_src: str,
     ```
     {example_new_arch_src}
     ``` \n
-    In this example, the model made the decision to replace some operators with custom CUDA kernels and left others unchanged. The model also decided to fuse some operators together. You are free to make all of these decisions as well. Please generate real code, NOT pseudocode, make sure the code compiles and is fully functional.
     You are given the following architecture: \n
     ```
     {arc_src}
     ```
-    Optimize the architecture named Model with custom CUDA operators! Name your optimized output architecture ModelNew. Output the new code in codeblocks.\n
+    Optimize the architecture named Model with custom CUDA operators! Name your optimized output architecture ModelNew. Output the new code in codeblocks. Please generate real code, NOT pseudocode, make sure the code compiles and is fully functional.\n
     """
     return prompt
 
