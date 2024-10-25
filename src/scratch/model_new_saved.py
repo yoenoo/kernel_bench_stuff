@@ -20,24 +20,20 @@ __global__ void matmul_kernel(const float* A, const float* B, float* C, int M, i
     }
 }
 
-torch::Tensor matmul_cuda(torch::Tensor A, torch::Tensor B) {
-    auto M = A.size(0);
-    auto K = A.size(1);
-    auto N = B.size(0);
-
+torch::Tensor matmul_cuda(torch::Tensor A, torch::Tensor B, int M, int N, int K) {
     auto C = torch::zeros({M, N}, A.options());
 
     const int BLOCK_SIZE = 16;
-    dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE);
-    dim3 dimGrid((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
+    dim3 threads(BLOCK_SIZE, BLOCK_SIZE);
+    dim3 blocks((N + BLOCK_SIZE - 1) / BLOCK_SIZE, (M + BLOCK_SIZE - 1) / BLOCK_SIZE);
 
-    matmul_kernel<<<dimGrid, dimBlock>>>(A.data_ptr<float>(), B.data_ptr<float>(), C.data_ptr<float>(), M, N, K);
+    matmul_kernel<<<blocks, threads>>>(A.data_ptr<float>(), B.data_ptr<float>(), C.data_ptr<float>(), M, N, K);
 
     return C;
 }
 """
 
-matmul_cpp_source = "torch::Tensor matmul_cuda(torch::Tensor A, torch::Tensor B);"
+matmul_cpp_source = "torch::Tensor matmul_cuda(torch::Tensor A, torch::Tensor B, int M, int N, int K);"
 
 # Compile the inline CUDA code for matrix multiplication
 matmul = load_inline(
@@ -51,8 +47,11 @@ matmul = load_inline(
 )
 
 class ModelNew(nn.Module):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, M, K, N):
+        super(ModelNew, self).__init__()
+        self.M = M
+        self.K = K
+        self.N = N
         self.matmul = matmul
 
     def forward(self, A: torch.Tensor, B: torch.Tensor) -> torch.Tensor:
@@ -61,14 +60,12 @@ class ModelNew(nn.Module):
 
         Args:
             A: Input tensor of shape (M, K).
-            B: Input tensor of shape (K, N).
+            B: Input tensor of shape (N, K).
 
         Returns:
             Output tensor of shape (M, N).
         """
-        # Transpose B to match the kernel's expected input shape
-        B_T = B.T
-        return self.matmul.matmul_cuda(A, B_T)
+        return self.matmul.matmul_cuda(A, B, self.M, self.N, self.K)
 
 M = 1024
 K = 4096

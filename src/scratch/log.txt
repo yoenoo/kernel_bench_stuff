@@ -1,1 +1,20 @@
-python: can't open file '/matx/u/aco/KernelBenchInternal/src/scratch/test.py': [Errno 2] No such file or directory
+Using /sailhome/aco/.cache/torch_extensions/py311_cu121 as PyTorch extensions root...
+Detected CUDA files, patching ldflags
+Emitting ninja build file /sailhome/aco/.cache/torch_extensions/py311_cu121/matmul/build.ninja...
+/matx/u/aco/miniconda3/envs/myenv/lib/python3.11/site-packages/torch/utils/cpp_extension.py:1965: UserWarning: TORCH_CUDA_ARCH_LIST is not set, all archs for visible cards are included for compilation. 
+If this is not desired, please set os.environ['TORCH_CUDA_ARCH_LIST'].
+  warnings.warn(
+Building extension module matmul...
+Allowing ninja to set a default number of workers... (overridable by setting the environment variable MAX_JOBS=N)
+ninja: no work to do.
+Loading extension module matmul...
+Traceback (most recent call last):
+  File "/matx/u/aco/KernelBenchInternal/src/scratch/test.py", line 49, in <module>
+    print(run())
+          ^^^^^
+  File "/matx/u/aco/KernelBenchInternal/src/scratch/test.py", line 44, in run
+    check_correctness()
+  File "/matx/u/aco/KernelBenchInternal/src/scratch/test.py", line 36, in check_correctness
+    assert(output.shape == output_new.shape)
+           ^^^^^^
+NameError: name 'output' is not defined
