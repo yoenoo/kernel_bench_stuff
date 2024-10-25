@@ -15,6 +15,9 @@ import numpy as np
 import os
 import importlib.util
 
+REPO_TOP_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',))
+KERNEL_BENCH_PATH = os.path.join(REPO_TOP_PATH, "KernelBench")
+
 def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
@@ -78,6 +81,6 @@ def run_all(directory):
         print(f"Failed tests: {fail_tests}")
 
 if __name__ == "__main__":
-    run_all("../KernelBench/level1")
-    run_all("../KernelBench/level2")
-    run_all("../KernelBench/level3")
+    run_all(KERNEL_BENCH_PATH + "/level1")
+    run_all(KERNEL_BENCH_PATH + "/level2")
+    run_all(KERNEL_BENCH_PATH + "/level3")
