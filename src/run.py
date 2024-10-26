@@ -24,6 +24,10 @@ server_args = {
     }
 }
 
+def save_generated_code(problem_name, code, filename):
+    with open(filename, "w") as f:
+        f.write(code)
+
 def run_llm(prompt):
     '''
     Call use common API query function with monkeys
@@ -36,7 +40,6 @@ def run(arch_path, save_prompt=False, prompt_example_ind=0):
     arch = read_file(arch_path)
     # Ensure the scratch directory exists
     os.makedirs(os.path.join(REPO_TOP_PATH, "src/scratch"), exist_ok=True)
-    
     # Write the architecture to REPO_TOP_PATH/src/scratch/model.py
     with open(os.path.join(REPO_TOP_PATH, "src/scratch/model.py"), "w") as f:
         f.write(arch)
@@ -45,15 +48,13 @@ def run(arch_path, save_prompt=False, prompt_example_ind=0):
     fn_get_prompt = prompt_generate_custom_cuda_from_file_save if save_prompt else prompt_generate_custom_cuda_from_file
     custom_cuda_prompt = fn_get_prompt(arch_path, prompt_example_ind)
     custom_cuda = run_llm(custom_cuda_prompt)
-    # import pdb; pdb.set_trace()
     custom_cuda = extract_first_code(custom_cuda, "python")
 
     # check LLM is able to generate custom CUDA code
     assert custom_cuda is not None, "Custom CUDA code generation failed"
     print("[Verification] Torch moduel with Custom CUDA code **GENERATED** successfully")
 
-    with open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "w") as f:
-        f.write(custom_cuda)
+    save_generated_code(str(arch_path), custom_cuda, os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"))
 
     # check if the generated code compiles
     try:
