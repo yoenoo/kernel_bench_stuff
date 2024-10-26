@@ -4,10 +4,7 @@ Traceback (most recent call last):
           ^^^^^
   File "/matx/u/aco/KernelBenchInternal/src/scratch/test.py", line 44, in run
     check_correctness()
-  File "/matx/u/aco/KernelBenchInternal/src/scratch/test.py", line 34, in check_correctness
-    model_new = ModelNew(*init_inputs).cuda()
-                ^^^^^^^^^^^^^^^^^^^^^^
-  File "/matx/u/aco/KernelBenchInternal/src/scratch/model_new.py", line 33, in __init__
-    self.module = torch.cuda.module_from_source(self.kernel)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: module 'torch.cuda' has no attribute 'module_from_source'
+  File "/matx/u/aco/KernelBenchInternal/src/scratch/test.py", line 36, in check_correctness
+    assert(output.shape == output_new.shape)
+           ^^^^^^
+NameError: name 'output' is not defined

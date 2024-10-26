@@ -24,10 +24,6 @@ server_args = {
     }
 }
 
-def save_generated_code(problem_name, code, filename):
-    with open(filename, "w") as f:
-        f.write(code)
-
 def run_llm(prompt):
     '''
     Call use common API query function with monkeys
@@ -54,7 +50,8 @@ def run(arch_path, save_prompt=False, prompt_example_ind=0):
     assert custom_cuda is not None, "Custom CUDA code generation failed"
     print("[Verification] Torch moduel with Custom CUDA code **GENERATED** successfully")
 
-    save_generated_code(str(arch_path), custom_cuda, os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"))
+    with open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "w") as f:
+        f.write(custom_cuda)
 
     # check if the generated code compiles
     try:
@@ -78,7 +75,7 @@ def run(arch_path, save_prompt=False, prompt_example_ind=0):
             print("[Verification] Custom CUDA kernel **FAIL** to match reference in terms of correctness")
             return "FAIL"
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     # run(os.path.join(KERNEL_BENCH_PATH, "level1/17_Matmul_with_transposed_B.py"))
     # run(os.path.join(KERNEL_BENCH_PATH, "level2/9_Matmul_Subtract_Multiply_ReLU.py"))
-    # run(os.path.join(KERNEL_BENCH_PATH, "level3/45_MiniGPTBlock.py"))
+    run(os.path.join(KERNEL_BENCH_PATH, "level3/45_MiniGPTBlock.py"))
