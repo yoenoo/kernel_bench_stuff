@@ -1,7 +1,7 @@
 import subprocess
 import os, sys
 from utils import query_server, read_file, extract_first_code
-from prompt_constructor import prompt_generate_custom_cuda_from_file
+from prompt_constructor import prompt_generate_custom_cuda_from_file, prompt_generate_custom_cuda_from_file_save
 
 REPO_TOP_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..',))
 KERNEL_BENCH_PATH = os.path.join(REPO_TOP_PATH, "KernelBench")
@@ -31,7 +31,7 @@ def run_llm(prompt):
     return query_server(prompt, server_type=SERVER_TYPE
                         , **server_args[SERVER_TYPE])
 
-def run(arch_path):
+def run(arch_path, save_prompt=False, prompt_example_ind=0):
     # read in an architecture file, copy it to REPO_TOP_PATH/src/scratch/model.py
     arch = read_file(arch_path)
     # Ensure the scratch directory exists
@@ -42,8 +42,8 @@ def run(arch_path):
         f.write(arch)
 
     # generate custom CUDA, save in scratch/model_new.py
-    example_ind = 1
-    custom_cuda_prompt = prompt_generate_custom_cuda_from_file(arch_path, example_ind)
+    fn_get_prompt = prompt_generate_custom_cuda_from_file_save if save_prompt else prompt_generate_custom_cuda_from_file
+    custom_cuda_prompt = fn_get_prompt(arch_path, prompt_example_ind)
     custom_cuda = run_llm(custom_cuda_prompt)
     # import pdb; pdb.set_trace()
     custom_cuda = extract_first_code(custom_cuda, "python")
@@ -78,4 +78,6 @@ def run(arch_path):
             return "FAIL"
 
 if __name__ == "__main__":
-    run(os.path.join(KERNEL_BENCH_PATH, "level1/17_Matmul_with_transposed_B.py"))
+    # run(os.path.join(KERNEL_BENCH_PATH, "level1/17_Matmul_with_transposed_B.py"))
+    # run(os.path.join(KERNEL_BENCH_PATH, "level2/9_Matmul_Subtract_Multiply_ReLU.py"))
+    # run(os.path.join(KERNEL_BENCH_PATH, "level3/45_MiniGPTBlock.py"))
