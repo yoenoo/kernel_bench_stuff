@@ -1,20 +1,13 @@
 # KernelBench
 
-A benchmark for evaluating LLM's ability to generate CUDA kernels.
+A benchmark for evaluating LLMs' ability to generate GPU kernels
 
 ![KernelBenchMascot](./assets/figures/KernelBenchMascot.png)
 
 
 ## Task Description
-Transpilation of `Pytorch` to `CUDA` kernels.
+TODO
 
-```
-- KernelBench: 3 Levels of difficulty
-    - Level 1: TO ADD
-    - Level 2: TO ADD
-    - Level 3: TO ADD
-- tests (better name?): 
-```
 
 ## Set up
 ```
