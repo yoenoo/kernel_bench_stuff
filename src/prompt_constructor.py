@@ -29,14 +29,21 @@ def prompt_generate_custom_cuda(arc_src: str,
     prompt = f"""
     You write custom CUDA kernels to replace the pytorch operators in the given architecture to get speedups. \n
     You have complete freedom to choose the set of operators you want to replace. You may make the decision to replace some operators with custom CUDA kernels and leave others unchanged. You may replace multiple operators with custom implementations, consider operator fusion opportunities (combining multiple operators into a single kernel, for example, combining matmul+relu), or algorithmic changes (such as online softmax). You are only limited by your imagination.\n
-    Here's an example to show you the syntax of inline embedding custom CUDA operators in torch: The example given architecture is: \n
-    ```
-    {example_arch_src}
-    ``` \n
-    The example new arch with custom CUDA kernels looks like this: 
-    ```
-    {example_new_arch_src}
-    ``` \n
+    """
+
+    if example_arch_src != "" and example_new_arch_src != "":
+        prompt += f"""
+        Here's an example to show you the syntax of inline embedding custom CUDA operators in torch: The example given architecture is: \n
+        ```
+        {example_arch_src}
+        ``` \n
+        The example new arch with custom CUDA kernels looks like this: 
+        ```
+        {example_new_arch_src}
+        ``` \n
+        """
+
+    prompt += f"""
     You are given the following architecture: \n
     ```
     {arc_src}
@@ -63,7 +70,7 @@ def prompt_generate_custom_cuda_from_file(arch_path, example_ind=0):
     return prompt_generate_custom_cuda(arch, example_arch, example_new_arch)
     
 
-def check_prompt_generate_custom_cuda(arch_path, example_ind=0):
+def prompt_generate_custom_cuda_from_file_save(arch_path, example_ind=0):
     generated_prompt = prompt_generate_custom_cuda_from_file(arch_path, example_ind)
 
     os.makedirs(os.path.join(REPO_TOP_PATH, "src/scratch"), exist_ok=True)
