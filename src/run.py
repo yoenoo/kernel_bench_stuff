@@ -48,7 +48,7 @@ def run(arch_path, save_prompt=False, prompt_example_ind=0):
 
     # check LLM is able to generate custom CUDA code
     assert custom_cuda is not None, "Custom CUDA code generation failed"
-    print("[Verification] Torch moduel with Custom CUDA code **GENERATED** successfully")
+    print("[Verification] Torch module with Custom CUDA code **GENERATED** successfully")
 
     with open(os.path.join(REPO_TOP_PATH, "src/scratch/model_new.py"), "w") as f:
         f.write(custom_cuda)
