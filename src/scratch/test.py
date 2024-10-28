@@ -19,20 +19,33 @@ def set_seed(seed):
 def check_correctness():
     # run the model and check correctness
     with torch.no_grad():
+
+        # generate inputs and init_inputs, and instantiate models
         set_seed(42)
         inputs = get_inputs()
-        inputs = [x.cuda() if isinstance(x, torch.Tensor) else x for x in inputs]
-
         set_seed(42)
         init_inputs = get_init_inputs()
-        init_inputs = [x.cuda() if isinstance(x, torch.Tensor) else x for x in init_inputs]
-
         set_seed(42)
         model = Model(*init_inputs).cuda()
-
         set_seed(42)
         model_new = ModelNew(*init_inputs).cuda()
 
+        # move to GPU
+        inputs = [x.cuda() if isinstance(x, torch.Tensor) else x for x in inputs]
+        init_inputs = [x.cuda() if isinstance(x, torch.Tensor) else x for x in init_inputs]
+        model = model.cuda()
+        model_new = model_new.cuda()
+
+        # forward pass
+        output = model(inputs[0])
+        output_new = model_new(inputs[0])
+
+        # move to CPU
+        torch.cuda.synchronize()
+        output = output.cpu()
+        output_new = output_new.cpu()
+
+        # check correctness
         assert(output.shape == output_new.shape)
         assert(torch.allclose(output, output_new, atol=1e-02))
 

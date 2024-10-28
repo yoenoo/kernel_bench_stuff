@@ -180,7 +180,7 @@ def run_and_check_correctness(original_model_instance: nn.Module,
             
             set_seed(seed)
             inputs = get_inputs_fn()
-            inputs = [x.cuda() for x in inputs]
+            inputs = [x.cuda() if isinstance(x, torch.Tensor) else x for x in inputs]
 
             set_seed(seed)
             model = original_model_instance.cuda()
