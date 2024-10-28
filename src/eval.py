@@ -189,9 +189,11 @@ def run_and_check_correctness(original_model_instance: nn.Module,
             model_new = new_model_instance.cuda()
 
             output = model(*inputs)
+            torch.cuda.synchronize()
 
             try:
                 output_new = model_new(*inputs)
+                torch.cuda.synchronize()
                 assert(output.shape == output_new.shape)
         
                 is_correct = torch.allclose(output, output_new, atol=1e-03)
