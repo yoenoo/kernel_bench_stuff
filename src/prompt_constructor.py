@@ -53,6 +53,9 @@ def prompt_generate_custom_cuda(arc_src: str,
     return prompt
 
 def prompt_generate_custom_cuda_from_file(arch_path, example_ind=0):
+    """
+    Check example_ind for prompt templates
+    """
     arch = get_arch_definition_from_file(arch_path)
     # These are strictly defined for now
     
