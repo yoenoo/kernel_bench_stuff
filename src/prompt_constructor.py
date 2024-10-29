@@ -48,7 +48,7 @@ def prompt_generate_custom_cuda(arc_src: str,
     ```
     {arc_src}
     ```
-    Optimize the architecture named Model with custom CUDA operators! Name your optimized output architecture ModelNew. Output the new code in codeblocks. Please generate real code, NOT pseudocode, make sure the code compiles and is fully functional. Just output the model code, no other text, and NO testing code! \n
+    Optimize the architecture named Model with custom CUDA operators! Name your optimized output architecture ModelNew. Output the new code in codeblocks. Please generate real code, NOT pseudocode, make sure the code compiles and is fully functional. Just output the new model code, no other text, and NO testing code! \n
     """
     return prompt
 
@@ -94,7 +94,7 @@ def prompt_fix_compile(ref_arch_src, custom_cuda, metadata):
     ```
     {metadata}
     ```
-    Please fix the compilation error. Please output the corrected code in codeblocks.
+    Please fix the compilation error in the new model code. Please output the corrected code in codeblocks.
     """
     return prompt
 
@@ -109,6 +109,6 @@ def prompt_fix_correctness(ref_arch_src, custom_cuda, metadata):
     ```
     {metadata}
     ```
-    Please fix the correctness error. Please output the corrected code in codeblocks.
+    Please consider how your custom CUDA kernels are implemented, how it is different from the reference implementation, and fix the correctness error in the new model code. Please output the corrected code in codeblocks.
     """
     return prompt
