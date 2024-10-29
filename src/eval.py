@@ -49,6 +49,7 @@ def set_seed(seed: int):
 class KernelExecResult(BaseModel):
     compiled: bool = False
     correctness: bool = False
+    metadata: str = ""
     # in us, only recorded if we decide to measure performance
     # can reformat this to be wall clock time
     torch_cpu_time: float = -1.0
@@ -92,7 +93,6 @@ def load_custom_model(model_custom_src: str) -> nn.Module:
 
     return ModelNew
 
-
 def eval_kernel_against_ref(original_model_src: str, 
                             custom_model_src: str, 
                             seed_num=42, 
@@ -128,8 +128,12 @@ def eval_kernel_against_ref(original_model_src: str,
         ModelNew = load_custom_model(custom_model_src)
     except Exception as e:
         print(f"Failed to compile custom CUDA kernel: {e}")
-        return KernelExecResult(compiled=False) # skip further steps
-    
+        # TODO: add metadata for compilation error? (show the error message)
+        # clean up before returning
+        del Model
+        del ModelNew
+        torch.cuda.empty_cache()
+        return KernelExecResult(compiled=False, metadata=str(e)) # skip further steps
 
     with torch.no_grad():    
         set_seed(seed_num) # set seed for reproducible weights
@@ -147,9 +151,17 @@ def eval_kernel_against_ref(original_model_src: str,
     else:
         if verbose:
             print("[Eval] Checking Correctness Only")
-        is_correct = run_and_check_correctness(original_model, custom_model, get_inputs, num_times=num_times, verbose=verbose, seed=seed_num)
-        
-        kernel_exec_result = KernelExecResult(compiled=True, correctness=is_correct)
+        try:
+            is_correct = run_and_check_correctness(original_model, custom_model, get_inputs, num_times=num_times, verbose=verbose, seed=seed_num)
+            kernel_exec_result = KernelExecResult(compiled=True, correctness=is_correct)
+        except Exception as e:
+            # TODO: add metadata for correctness error? e.g. runtime error, error in launching kernel, ...
+            kernel_exec_result = KernelExecResult(compiled=True, correctness=False, metadata=str(e))
+            # clean up before returning
+            del Model
+            del ModelNew
+            torch.cuda.empty_cache()
+            return kernel_exec_result
     # Clean up
     # delete global references before next eval run
     del Model
