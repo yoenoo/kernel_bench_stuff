@@ -96,12 +96,12 @@ def run_multiturn(ref_arch_src, turns=10) -> KernelExecResult:
 
 if __name__ == "__main__":
 
-    PROBLEM_DIR = os.path.join(KERNEL_BENCH_PATH, "level1")
+    PROBLEM_DIR = os.path.join(KERNEL_BENCH_PATH, "level2")
     dataset = construct_problem_dataset_from_problem_dir(PROBLEM_DIR)
     ref_arch_src = fetch_ref_arch_from_problem_id(17, dataset)
     # write to scratch/model.py
     with open(os.path.join(REPO_TOP_PATH, "src/scratch/model.py"), "w") as f:
         f.write(ref_arch_src)
-    print(run(ref_arch_src))
+    # print(run(ref_arch_src))
 
-    # print(run_multiturn(ref_arch_src))
+    print(run_multiturn(ref_arch_src))
