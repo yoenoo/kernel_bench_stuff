@@ -28,7 +28,6 @@ class EvalConfig(Config):
         # name of dataset name on Hugging Face
         self.dataset_name = "ScalingIntelligence/KernelBench"
 
-
         # Problem Specification
         self.level = REQUIRED
         # NOTE: this is the logical index (problem id the problem_name)\
@@ -42,8 +41,15 @@ class EvalConfig(Config):
         self.gpu_arch = ["Ada"]
 
         # Inference config
-        self.server_type = "deepseek"
-        self.model_name = "deepseek-coder"
+        # self.server_type = "deepseek"
+        # self.model_name = "deepseek-coder"
+
+        # self.server_type = "openai"
+        # self.model_name = "gpt-4o-2024-08-06"
+
+        self.server_type = None # "openrouter"
+        self.model_name = None # "Qwen/QwQ-32B"
+
         self.max_tokens = 4096
         self.temperature = 0.0
 
@@ -135,6 +141,7 @@ def main(config: EvalConfig):
     # Query server with constructed prompt
     custom_cuda = inference_server(custom_cuda_prompt)
     custom_cuda = extract_first_code(custom_cuda, ["python", "cpp"])
+    print(custom_cuda)
     # check LLM is able to generate custom CUDA code
     assert custom_cuda is not None, "Custom CUDA code generation failed"
     

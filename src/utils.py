@@ -21,6 +21,8 @@ from together import Together
 from openai import OpenAI
 import google.generativeai as genai
 import anthropic
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
 
 # from datasets import load_dataset
 import numpy as np
@@ -44,7 +46,7 @@ SGLANG_KEY = os.environ.get("SGLANG_API_KEY")  # for Local Deployment
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY")
 SAMBANOVA_API_KEY = os.environ.get("SAMBANOVA_API_KEY")
 FIREWORKS_API_KEY = os.environ.get("FIREWORKS_API_KEY")
-
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY")
 
 ########################################################
 # Inference Helpers
@@ -140,7 +142,6 @@ def query_server(
                 max_retries=3,
             )
             model = model_name
-
         case "anthropic":
             client = anthropic.Anthropic(
                 api_key=ANTHROPIC_KEY,
@@ -155,10 +156,20 @@ def query_server(
         case "sambanova":
             client = OpenAI(api_key=SAMBANOVA_API_KEY, base_url="https://api.sambanova.ai/v1")
             model = model_name
-            
         case "openai":
             client = OpenAI(api_key=OPENAI_KEY)
             model = model_name
+        case "openrouter":
+            client = OpenAI(api_key=OPENROUTER_API_KEY, base_url="https://openrouter.ai/api/v1")
+            model = model_name
+        case "hf":
+            print(model_name)
+            tokenizer = AutoTokenizer.from_pretrained(model_name)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                torch_dtype=torch.bfloat16,  # Use FP16 for memory efficiency
+                device_map="auto"  # Automatically distribute across available devices
+            )
         case _:
             raise NotImplementedError
 
@@ -326,8 +337,17 @@ def query_server(
         )
         outputs = [choice.message.content for choice in response.choices]
     # for all other kinds of servers, use standard API
+    elif server_type == "hf":
+        response = model.generate(
+            prompt,
+            temperature=temperature,
+            max_new_tokens=max_tokens,
+        )
+        outputs = [response.text]
+        print(outputs)
     else:
         if type(prompt) == str:
+            print(client)
             response = client.completions.create(
                 model=model,
                 prompt=prompt,
@@ -390,11 +410,21 @@ SERVER_PRESETS = {
         "temperature": 0.0,
         "max_tokens": 4096,
     },
+    "openrouter": {
+        "model_name": "Qwen/QwQ-32B", ## TODO: fix this
+        "temperature": 0.0,
+        "max_tokens": 4096,
+    },
     "sambanova": {
         "model_name": "Meta-Llama-3.1-405B-Instruct",
         "temperature": 0.1,
         "max_tokens": 8192,
     },
+    "hf": {
+        "model_name": "cognition-ai/Kevin-32B",
+        "temperature": 0.0,
+        "max_tokens": 4096,
+    }
 }
 
 
