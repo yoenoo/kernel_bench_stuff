@@ -141,7 +141,10 @@ def main(config: EvalConfig):
     # Query server with constructed prompt
     custom_cuda = inference_server(custom_cuda_prompt)
     custom_cuda = extract_first_code(custom_cuda, ["python", "cpp"])
-    print(custom_cuda)
+    # print("--------------------------------")
+    # print(("CUSTOM CUDA SOLUTION"))
+    # print(custom_cuda)
+    # print("--------------------------------")
     # check LLM is able to generate custom CUDA code
     assert custom_cuda is not None, "Custom CUDA code generation failed"
     

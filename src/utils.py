@@ -165,11 +165,12 @@ def query_server(
         case "hf":
             print(model_name)
             tokenizer = AutoTokenizer.from_pretrained(model_name)
-            model = AutoModelForCausalLM.from_pretrained(
+            client = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 torch_dtype=torch.bfloat16,  # Use FP16 for memory efficiency
                 device_map="auto"  # Automatically distribute across available devices
             )
+            model = model_name
         case _:
             raise NotImplementedError
 
@@ -338,16 +339,12 @@ def query_server(
         outputs = [choice.message.content for choice in response.choices]
     # for all other kinds of servers, use standard API
     elif server_type == "hf":
-        response = model.generate(
-            prompt,
-            temperature=temperature,
-            max_new_tokens=max_tokens,
-        )
-        outputs = [response.text]
-        print(outputs)
+        model_inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
+        ## TODO: fix params
+        generated_ids = client.generate(**model_inputs, temperature=1.2, top_p=0.95, max_new_tokens=4096)
+        outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
     else:
         if type(prompt) == str:
-            print(client)
             response = client.completions.create(
                 model=model,
                 prompt=prompt,
