@@ -136,9 +136,6 @@ def load_custom_model(
         return None
 
     ModelNew = context.get("ModelNew")
-    # print("--------------------------------")
-    # print(ModelNew)
-    # print("--------------------------------")
     return ModelNew
 
 

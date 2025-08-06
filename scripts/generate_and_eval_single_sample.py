@@ -50,8 +50,9 @@ class EvalConfig(Config):
         self.server_type = None # "openrouter"
         self.model_name = None # "Qwen/QwQ-32B"
 
-        self.max_tokens = 4096
-        self.temperature = 0.0
+        self.max_tokens = None
+        self.temperature = None
+        self.top_p = None
 
         # Logging
         self.logdir = os.path.join(REPO_TOP_DIR, "results/eval_logs")
@@ -157,7 +158,7 @@ def main(config: EvalConfig):
     # NOTE: no need to wrap around process here as only a single sample
     # see batch eval for examples of process isolation
     kernel_exec_result = eval_kernel_against_ref(
-        ref_arch_src, custom_cuda, verbose=config.verbose, measure_performance=True, num_correct_trials=5, num_perf_trials=100
+        ref_arch_src, custom_cuda, verbose=config.verbose, measure_performance=True, num_correct_trials=5, num_perf_trials=10 ## num_perf_trials=100 (default)
     )
     
     print(f"Evaluation result for level {config.level} problem {config.problem_id}:\n{kernel_exec_result}")

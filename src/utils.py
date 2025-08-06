@@ -163,7 +163,6 @@ def query_server(
             client = OpenAI(api_key=OPENROUTER_API_KEY, base_url="https://openrouter.ai/api/v1")
             model = model_name
         case "hf":
-            print(model_name)
             tokenizer = AutoTokenizer.from_pretrained(model_name)
             client = AutoModelForCausalLM.from_pretrained(
                 model_name,
@@ -337,12 +336,22 @@ def query_server(
             top_p=top_p,
         )
         outputs = [choice.message.content for choice in response.choices]
-    # for all other kinds of servers, use standard API
+
     elif server_type == "hf":
-        model_inputs = tokenizer([prompt], return_tensors="pt").to("cuda")
-        ## TODO: fix params
-        generated_ids = client.generate(**model_inputs, temperature=1.2, top_p=0.95, max_new_tokens=4096)
-        outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+        formatted_prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        model_inputs = tokenizer([formatted_prompt], return_tensors="pt").to("cuda")
+        generated_ids = client.generate(**model_inputs, temperature=temperature, top_p=top_p, max_new_tokens=max_tokens) 
+        # Extract only the newly generated tokens (exclude the input prompt)
+        input_length = model_inputs["input_ids"].shape[1]
+        generated_response_ids = generated_ids[0][input_length:]
+        # outputs = tokenizer.batch_decode(generated_ids, skip_special_tokens=True)
+        outputs = tokenizer.decode(generated_response_ids, skip_special_tokens=True)
+
+    # for all other kinds of servers, use standard API
     else:
         if type(prompt) == str:
             response = client.completions.create(
@@ -419,7 +428,8 @@ SERVER_PRESETS = {
     },
     "hf": {
         "model_name": "cognition-ai/Kevin-32B",
-        "temperature": 0.0,
+        "temperature": 1.2,
+        # "top_p": 0.95,
         "max_tokens": 4096,
     }
 }
