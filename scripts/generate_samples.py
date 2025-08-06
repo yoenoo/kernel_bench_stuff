@@ -152,7 +152,8 @@ def main(config: GenerationConfig):
         curr_level_dataset = construct_kernelbench_dataset(config.level)
 
 
-    num_problems_in_level = len(curr_level_dataset)
+    # num_problems_in_level = len(curr_level_dataset)
+    num_problems_in_level = 10
 
     if config.subset == (None, None):
         problem_id_range = range(1, num_problems_in_level)

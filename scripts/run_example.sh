@@ -13,15 +13,16 @@ set -xe
 
 
 # full eval
-# default config: Starting Batch Generation with config: EvalConfig({'dataset_src': 'huggingface', 'dataset_name': 'ScalingIntelligence/KernelBench', 'level': 1, 'subset': [None, None], 'run_name': 'test_hf_level_1', 'num_workers': 50, 'api_query_interval': 0.0, 'server_type': 'hf', 'model_name': 'cognition-ai/Kevin-32B', 'max_tokens': 4096, 'temperature': 0.0, 'runs_dir': '/root/kernel_bench_stuff/runs', 'verbose': False, 'store_type': 'local', 'log_prompt': False})
 python3 scripts/generate_samples.py \
   run_name=test_hf_level_1 \
   dataset_src=huggingface \
   level=1 \
-  num_workers=50 \
+  temperature=1.0 \
+  num_workers=1 \
   server_type=hf \
   model_name="cognition-ai/Kevin-32B"
 
+## TODO: understand how this works (seems to go beyond the 10 samples)
 python3 scripts/eval_from_generations.py \
   run_name=test_hf_level_1 \
   dataset_src=huggingface \
